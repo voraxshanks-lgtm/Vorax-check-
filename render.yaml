@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: vorax-check-ban-v2
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: INFOBIP_BASE_URL
+        value: https://y4geyg.api.infobip.com
+      - key: INFOBIP_API_KEY
+        sync: false
+      - key: ADMIN_TEST_TOKEN
+        generateValue: true
