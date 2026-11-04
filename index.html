@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080b18">
+  <title>VORAX WHATSAPP CHECKER</title>
+  <style>
+    :root {
+      --cyan:#27e6e6; --violet:#8b5cf6; --bg:#080b18;
+      --panel:rgba(15,22,43,.78); --text:#f5f7ff; --muted:#9ca9c6;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; min-height:100vh; color:var(--text);
+      font-family:Inter,system-ui,Arial,sans-serif;
+      background:
+        radial-gradient(circle at 15% 15%,rgba(32,226,226,.15),transparent 30%),
+        radial-gradient(circle at 85% 80%,rgba(139,92,246,.18),transparent 32%),
+        linear-gradient(135deg,#050711,#10142b 55%,#080b18);
+      display:grid; place-items:center; padding:22px;
+    }
+    .shell { width:min(100%,520px); }
+    .top { text-align:center; margin-bottom:22px; }
+    .logo {
+      width:68px;height:68px;margin:0 auto 14px;border-radius:22px;
+      display:grid;place-items:center;font-size:30px;font-weight:900;
+      color:#07121b;background:linear-gradient(135deg,var(--cyan),#8afafa);
+      box-shadow:0 0 35px rgba(39,230,230,.24);
+    }
+    h1 { font-size:clamp(23px,6vw,32px);letter-spacing:1.4px;margin:0; }
+    h1 span { color:var(--cyan); }
+    .sub { color:var(--muted);margin:9px 0 0;font-size:14px; }
+    .card {
+      background:var(--panel);border:1px solid rgba(39,230,230,.35);
+      border-radius:24px;padding:24px;
+      box-shadow:0 20px 70px rgba(0,0,0,.4),0 0 30px rgba(39,230,230,.07);
+      backdrop-filter:blur(18px);
+    }
+    label { display:block;font-size:13px;color:#c5d0e8;margin:0 0 9px; }
+    .field {
+      display:flex;gap:9px;background:#080d1d;border:1px solid #34405f;
+      border-radius:14px;padding:7px;transition:.2s;
+    }
+    .field:focus-within { border-color:var(--cyan);box-shadow:0 0 0 3px rgba(39,230,230,.1); }
+    select,input {
+      color:white;background:transparent;border:0;outline:0;font:inherit;
+    }
+    select { width:75px;padding:0 4px;color:#b9fafa; }
+    select option { color:#111; }
+    input { min-width:0;flex:1;padding:11px 5px;font-size:16px; }
+    input::placeholder { color:#687590; }
+    button {
+      width:100%;margin-top:16px;border:0;border-radius:14px;padding:15px;
+      color:#041316;font-weight:900;font-size:15px;letter-spacing:1px;
+      background:linear-gradient(90deg,var(--cyan),#8cf5ed);
+      cursor:pointer;box-shadow:0 8px 25px rgba(39,230,230,.18);
+    }
+    button:disabled { opacity:.6;cursor:wait; }
+    .result {
+      display:none;margin-top:18px;padding:17px;border-radius:16px;
+      background:rgba(5,10,24,.75);border:1px solid #34405f;
+    }
+    .result.show { display:block; }
+    .status {font-weight:900;color:#ffd166;font-size:17px;letter-spacing:.5px;}
+    .number {color:#d9e6ff;margin-top:7px;font-size:14px;}
+    .message {color:var(--muted);font-size:13px;line-height:1.55;margin:10px 0 0;}
+    .error {color:#ff9292;}
+    .note {
+      margin:17px 2px 0;color:#8794b0;font-size:12px;line-height:1.55;text-align:center;
+    }
+    .footer {text-align:center;color:#65718c;font-size:11px;margin-top:18px;letter-spacing:1px;}
+    .loader {display:inline-block;width:14px;height:14px;border:2px solid #06272a;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:7px;}
+    @keyframes spin {to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="top">
+      <div class="logo">V</div>
+      <h1>VORAX <span>WHATSAPP</span> CHECKER</h1>
+      <p class="sub">Vérification du numéro · Sans inscription</p>
+    </header>
+
+    <section class="card">
+      <label for="phone">NUMÉRO À ANALYSER</label>
+      <div class="field">
+        <select id="country" aria-label="Indicatif du pays">
+          <option value="CI" selected>+225</option>
+          <option value="FR">+33</option>
+          <option value="SN">+221</option>
+          <option value="ML">+223</option>
+          <option value="BF">+226</option>
+          <option value="GH">+233</option>
+          <option value="NG">+234</option>
+          <option value="US">+1</option>
+          <option value="GB">+44</option>
+        </select>
+        <input id="phone" type="tel" inputmode="tel" autocomplete="tel"
+          placeholder="Ex. 07 00 00 00 00" maxlength="30">
+      </div>
+      <button id="checkBtn" type="button">CHECKER LE NUMÉRO</button>
+
+      <div id="result" class="result" role="status" aria-live="polite">
+        <div id="status" class="status"></div>
+        <div id="number" class="number"></div>
+        <p id="message" class="message"></p>
+      </div>
+      <p class="note">
+        Important : le site peut contrôler le format du numéro, mais aucune API publique officielle
+        ne permet de connaître le bannissement d'un numéro WhatsApp quelconque.
+        Le statut sera donc indiqué comme non vérifiable, jamais inventé.
+      </p>
+    </section>
+    <div class="footer">THE SUPREMARCY VORAX EMPIRE · VORAX TOOLS</div>
+  </main>
+
+  <script>
+    const btn = document.getElementById("checkBtn");
+    const result = document.getElementById("result");
+    const statusEl = document.getElementById("status");
+    const numberEl = document.getElementById("number");
+    const messageEl = document.getElementById("message");
+
+    btn.addEventListener("click", async () => {
+      const phone = document.getElementById("phone").value.trim();
+      const country = document.getElementById("country").value;
+      result.classList.remove("show");
+      messageEl.classList.remove("error");
+
+      if (!phone) {
+        showError("Entre d'abord un numéro de téléphone.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loader"></span>ANALYSE...';
+
+      try {
+        const response = await fetch("/api/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone, country })
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          showError(data.error || "Vérification impossible.");
+        } else {
+          statusEl.textContent = data.label;
+          numberEl.textContent = "Numéro : " + data.number;
+          messageEl.textContent = data.message;
+          result.classList.add("show");
+        }
+      } catch (_error) {
+        showError("Le serveur ne répond pas. Réessaie plus tard.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "CHECKER LE NUMÉRO";
+      }
+    });
+
+    document.getElementById("phone").addEventListener("keydown", e => {
+      if (e.key === "Enter") btn.click();
+    });
+
+    function showError(message) {
+      statusEl.textContent = "ERREUR";
+      numberEl.textContent = "";
+      messageEl.textContent = message;
+      messageEl.classList.add("error");
+      result.classList.add("show");
+    }
+  </script>
+</body>
+</html>
