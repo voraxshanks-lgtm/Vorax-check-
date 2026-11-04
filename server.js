@@ -28,5 +28,14 @@ app.post("/api/check",checkLimit,(req,res)=>{
  if(!parsed||!parsed.isPossible())return res.status(400).json({error:"Numéro incomplet ou invalide. Vérifie l'indicatif et les chiffres."});
  return res.json({status:"UNKNOWN",label:"IMPOSSIBLE À VÉRIFIER",number:parsed.formatInternational(),valid:parsed.isValid(),message:"Le format est reconnu, mais aucune preuve fiable du statut de bannissement n'est disponible. Infobip ne confirme pas le statut d'un compte personnel."});
 });
-app.get("/health",(_q,r)=>r.json({ok:true}));
-app.listen(PORT,()=>console.log(`VORAX CHECK BAN V2 lancé sur le port ${PORT}`));
+app.get("/api/health", (_q, r) => {
+  r.json({
+    ok: true,
+    service: "VORAX CHECK BAN V2",
+    banCheckAvailable: false
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`VORAX CHECK BAN V2 lancé sur le port ${PORT}`);
+});
